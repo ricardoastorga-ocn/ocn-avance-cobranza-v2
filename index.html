@@ -1,0 +1,316 @@
+<title>Avance de Cobranza</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f4f1; --surface:#ffffff; --surface-2:#eef0fa; --surface-3:#faf9f7;
+  --ink:#18151f; --ink-2:#5b5568; --ink-3:#948da3;
+  --border:#e6e1ee; --border-2:#ece7f3;
+  --accent:#1b4580; --accent-soft:#e8eef7; --accent-ring:#1b458033; --accent-ink:#123159;
+  --good:#0ca34a; --good-soft:#e3f6ea;
+  --warn:#c47a00; --warn-soft:#fdf1dc;
+  --bad:#d0403b; --bad-soft:#fbe9e8;
+  --neutral:#8b8598; --neutral-soft:#eeecf3;
+  --shadow-sm: 0 1px 2px rgba(24,21,31,.05), 0 1px 1px rgba(24,21,31,.03);
+  --shadow-md: 0 4px 16px rgba(24,21,31,.06), 0 1px 3px rgba(24,21,31,.05);
+  --shadow-lg: 0 16px 48px rgba(24,21,31,.10), 0 2px 8px rgba(24,21,31,.06);
+}
+*{box-sizing:border-box;}
+body{background:var(--bg); color:var(--ink); margin:0;}
+::selection{background:var(--accent-soft); color:var(--accent-ink);}
+.wrap{
+  font-family:'Manrope',-apple-system,BlinkMacSystemFont,sans-serif;
+  max-width:1240px; margin:0 auto; padding:48px 28px 80px;
+}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace; font-variant-numeric:tabular-nums;}
+h1,h2,h3{font-family:'Fraunces',Georgia,serif; text-wrap:balance; margin:0;}
+
+.head{display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap; margin-bottom:40px;}
+.head-left{display:flex; flex-direction:column; gap:10px;}
+.eyebrow{font-size:12px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--accent-ink);}
+.head h1{font-size:40px; font-weight:600; letter-spacing:-.01em; color:var(--ink);}
+.head p{margin:0; color:var(--ink-2); font-size:14.5px; max-width:580px; line-height:1.5;}
+.corte-badge{
+  display:inline-flex; flex-direction:column; align-items:flex-end; gap:2px;
+  padding:12px 18px; border-radius:14px; background:var(--surface); border:1px solid var(--border); box-shadow:var(--shadow-sm);
+}
+.corte-badge .l{font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-3);}
+.corte-badge .v{font-family:'IBM Plex Mono',monospace; font-size:18px; font-weight:600; color:var(--ink);}
+
+.hero{
+  background:var(--surface); border:1px solid var(--border); border-radius:22px; padding:32px 32px 24px;
+  box-shadow:var(--shadow-md); margin-bottom:28px;
+}
+.hero-top{display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:22px; flex-wrap:wrap;}
+.hero-top h2{font-size:22px; font-weight:600;}
+.hero-legend{display:flex; gap:18px; font-size:12.5px; color:var(--ink-2); align-items:center;}
+.hero-legend .dot{width:9px; height:9px; border-radius:50%; display:inline-block; margin-right:6px; vertical-align:-1px;}
+.dot-active{background:var(--accent);}
+.dot-done{background:var(--ink-3);}
+
+.bars{display:flex; flex-direction:column; gap:10px;}
+.bar-row{display:grid; grid-template-columns:72px 1fr 96px; align-items:center; gap:14px; cursor:pointer; padding:5px 8px; margin:0 -8px; border-radius:10px; transition:background .12s;}
+.bar-row:hover{background:var(--surface-3);}
+.bar-row.selected{background:var(--accent-soft);}
+.bar-date{font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--ink-2); text-align:right;}
+.bar-row.selected .bar-date{color:var(--accent-ink); font-weight:600;}
+.bar-track{position:relative; height:22px; background:var(--surface-2); border-radius:7px; overflow:hidden;}
+.bar-fill{position:absolute; inset:0 auto 0 0; border-radius:7px 3px 3px 7px; transition:width .5s cubic-bezier(.16,1,.3,1);}
+.bar-fill.done{background:var(--ink-3); opacity:.55;}
+.bar-fill.active{background:linear-gradient(90deg, var(--accent), #4b7fc9);}
+.bar-n{position:absolute; right:8px; top:50%; transform:translateY(-50%); font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--ink-2); font-weight:500;}
+.bar-pct{font-family:'IBM Plex Mono',monospace; font-size:14.5px; font-weight:600; text-align:right;}
+
+.detail-head{display:flex; align-items:center; justify-content:space-between; margin:36px 0 16px; flex-wrap:wrap; gap:10px;}
+.detail-head h2{font-size:24px; font-weight:600;}
+.detail-head .sub{font-size:13px; color:var(--ink-2);}
+.grid{display:grid; grid-template-columns:repeat(12,1fr); gap:16px;}
+.card{background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:22px 24px; box-shadow:var(--shadow-sm);}
+.card h3{font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3); margin-bottom:16px;}
+.col-4{grid-column:span 4;} .col-6{grid-column:span 6;} .col-8{grid-column:span 8;} .col-12{grid-column:span 12;}
+
+.stat-big{font-family:'Fraunces',serif; font-size:46px; font-weight:600; line-height:1; color:var(--ink);}
+.stat-sub{font-size:12.5px; color:var(--ink-2); margin-top:6px;}
+.stat-row{display:flex; gap:28px; flex-wrap:wrap;}
+
+.team-row{display:flex; align-items:center; gap:12px; margin-bottom:11px;}
+.team-row:last-child{margin-bottom:0;}
+.team-name{width:64px; font-size:13px; font-weight:700; color:var(--ink-2);}
+.team-track{flex:1; height:14px; background:var(--surface-2); border-radius:6px; position:relative; overflow:hidden;}
+.team-fill{position:absolute; inset:0 auto 0 0; border-radius:6px; background:var(--accent);}
+.team-pct{width:48px; text-align:right; font-family:'IBM Plex Mono',monospace; font-size:12.5px; font-weight:600;}
+
+.bd-row{display:flex; align-items:center; gap:10px; margin-bottom:10px; font-size:13px;}
+.bd-row:last-child{margin-bottom:0;}
+.bd-name{width:150px; color:var(--ink-2); flex-shrink:0;}
+.bd-track{flex:1; height:8px; background:var(--surface-2); border-radius:4px; overflow:hidden;}
+.bd-fill{height:100%; background:var(--accent); border-radius:4px;}
+.bd-pct{width:44px; text-align:right; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-2);}
+.bd-n{width:56px; text-align:right; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-3);}
+
+.mixbar{display:flex; height:26px; border-radius:8px; overflow:hidden; margin-bottom:14px;}
+.mixbar span{height:100%;}
+.mix-legend{display:flex; gap:14px 20px; flex-wrap:wrap; font-size:12px; color:var(--ink-2);}
+.mix-legend .dot{width:8px; height:8px; border-radius:2px; display:inline-block; margin-right:5px;}
+.mini-mix{display:flex; width:84px; height:10px; border-radius:4px; overflow:hidden; background:var(--surface-2);}
+.mini-mix span{height:100%;}
+
+table{width:100%; border-collapse:collapse; font-size:13px;}
+th{text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-3); font-weight:700; padding:0 8px 8px; border-bottom:1px solid var(--border);}
+th.num, td.num{text-align:right; font-family:'IBM Plex Mono',monospace;}
+td{padding:9px 8px; border-bottom:1px solid var(--border-2);}
+tr:last-child td{border-bottom:none;}
+.rank{display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; background:var(--surface-2); font-size:11px; font-weight:700; color:var(--ink-2); margin-right:8px;}
+
+.split-block{display:flex; gap:20px;}
+.split-item{flex:1; padding:16px 18px; border-radius:14px; background:var(--surface-3);}
+.split-item .l{font-size:12px; font-weight:700; color:var(--ink-3); text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px;}
+.split-item .v{font-family:'Fraunces',serif; font-size:28px; font-weight:600;}
+.split-item .n{font-size:12px; color:var(--ink-2); margin-top:4px;}
+
+.empty-note{font-size:13px; color:var(--ink-3); font-style:italic;}
+
+footer{margin-top:44px; padding-top:22px; border-top:1px solid var(--border); font-size:12px; color:var(--ink-3); line-height:1.6;}
+
+@media (max-width:760px){
+  .grid{grid-template-columns:1fr;}
+  .col-4,.col-6,.col-8,.col-12{grid-column:1 / -1;}
+  .bar-row{grid-template-columns:52px 1fr 72px;}
+  .head h1{font-size:30px;}
+}
+</style>
+
+<div class="wrap">
+
+  <div class="head">
+    <div class="head-left">
+      <span class="eyebrow">OCN · Growth · Cobranza</span>
+      <h1>Avance de Cobranza</h1>
+      <p>Progreso de calificación por corte diario ("Base NN-mmm") — cuántos casos ya tienen decisión del equipo, por Equipo, Ventana DPD y Segmento.</p>
+    </div>
+    <div class="corte-badge">
+      <span class="l">Datos al</span>
+      <span class="v" id="corteDate"></span>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-top">
+      <h2>Progreso por corte</h2>
+      <div class="hero-legend">
+        <span><span class="dot dot-active"></span>en curso</span>
+        <span><span class="dot dot-done"></span>saturada (~100%)</span>
+      </div>
+    </div>
+    <div class="bars" id="heroBars"></div>
+  </div>
+
+  <div class="detail-head">
+    <div>
+      <h2 id="detailTitle"></h2>
+      <div class="sub" id="detailSub"></div>
+    </div>
+  </div>
+
+  <div class="grid" id="detailGrid"></div>
+
+  <footer id="footerNote"></footer>
+</div>
+
+<script>
+const DATA = {"baseOrder": ["29sep", "30sep"], "baseDates": {"29sep": "29-sep", "30sep": "30-sep"}, "baseShort": {"29sep": "29 sep", "30sep": "30 sep"}, "bases": {"29sep": {"total": 7554, "avanzado": 63, "pct": 0.8339952343129466, "equipo_stats": {"1": {"avanzado": 45, "total": 1119, "pct": 4.021447721179625}, "2": {"avanzado": 0, "total": 1119, "pct": 0.0}, "3": {"avanzado": 16, "total": 1399, "pct": 1.143674052894925}, "4": {"avanzado": 0, "total": 1399, "pct": 0.0}, "5": {"avanzado": 0, "total": 1119, "pct": 0.0}, "6": {"avanzado": 2, "total": 1399, "pct": 0.14295925661186562}}, "ventana_stats": {"8+ (Recovery)": {"avanzado": 49, "total": 2656, "pct": 1.8448795180722892}, "mar-mié (1-2)": {"avanzado": 14, "total": 1051, "pct": 1.3320647002854424}, "(sin ventana / sin cruce)": {"avanzado": 0, "total": 3847, "pct": 0.0}}, "segmento_stats": {"NUEVO": {"avanzado": 0, "total": 150, "pct": 0.0}, "A": {"avanzado": 11, "total": 3461, "pct": 0.31782721756717713}, "B": {"avanzado": 1, "total": 461, "pct": 0.21691973969631237}, "C": {"avanzado": 12, "total": 448, "pct": 2.6785714285714284}, "D": {"avanzado": 39, "total": 2375, "pct": 1.6421052631578947}, "E SIN CRUCE": {"avanzado": 0, "total": 659, "pct": 0.0}}, "con_voluntad": 16, "con_promesa": 0, "status_list": [{"status": "En Seguimiento / Llamar después", "count": 36, "pct": 67.9245283018868, "class": "warn"}, {"status": "Pago realizado en gestion", "count": 5, "pct": 9.433962264150944, "class": "good"}, {"status": "Corralón (Tarjeta Circulación y Multas)", "count": 2, "pct": 3.7735849056603774, "class": "bad"}, {"status": "Corralón", "count": 2, "pct": 3.7735849056603774, "class": "bad"}, {"status": "Ya hizo devolución voluntaria", "count": 1, "pct": 1.8867924528301887, "class": "good"}, {"status": "Problemas personales / emergencia", "count": 1, "pct": 1.8867924528301887, "class": "bad"}, {"status": "Taller", "count": 1, "pct": 1.8867924528301887, "class": "bad"}, {"status": "Seguros/Siniestro", "count": 1, "pct": 1.8867924528301887, "class": "bad"}, {"status": "En proceso de Recuperación Forzosa", "count": 1, "pct": 1.8867924528301887, "class": "warn"}, {"status": "Ya tiene Ademdum", "count": 1, "pct": 1.8867924528301887, "class": "good"}, {"status": "Ligas pendientes de envío", "count": 1, "pct": 1.8867924528301887, "class": "warn"}, {"status": "Incongruencia en Data", "count": 1, "pct": 1.8867924528301887, "class": "bad"}], "mix_legend": {"good": 13.20754716981132, "warn": 71.69811320754717, "bad": 15.09433962264151, "neutral": 0.0}, "status_total": 53, "asesores_list": [{"name": "Yolanda Contreras Lozano", "equipo": "1", "total": 279, "avanzado": 0, "pct": 0.0, "mix": {"good": 0, "warn": 0, "bad": 0, "neutral": 0}}, {"name": "Leilany Ibarra Gomez", "equipo": "4", "total": 279, "avanzado": 0, "pct": 0.0, "mix": {"good": 0, "warn": 0, "bad": 0, "neutral": 0}}, {"name": "Irma Karina Marentes Rodriguez", "equipo": "5", "total": 280, "avanzado": 0, "pct": 0.0, "mix": {"good": 0, "warn": 0, "bad": 0, "neutral": 0}}, {"name": "Thomain Sanchez", "equipo": "3", "total": 279, "avanzado": 0, "pct": 0.0, "mix": {"good": 0, "warn": 0, "bad": 0, "neutral": 0}}, {"name": "Aura Jimena Perez Ruiz", "equipo": "4", "total": 280, "avanzado": 0, "pct": 0.0, "mix": {"good": 0, "warn": 0, "bad": 0, "neutral": 0}}, {"name": "Antonio Gonzalez", "equipo": "1", "total": 280, "avanzado": 12, "pct": 4.285714285714286, "mix": {"good": 33.33333333333333, "warn": 66.66666666666666, "bad": 0.0, "neutral": 0.0}}, {"name": "Anuar López Espinosa de los Monteros", "equipo": "6", "total": 280, "avanzado": 0, "pct": 0.0, "mix": {"good": 0, "warn": 0, "bad": 0, "neutral": 0}}, {"name": "Sandra Montaño Palacios", "equipo": "5", "total": 280, "avanzado": 0, "pct": 0.0, "mix": {"good": 0, "warn": 0, "bad": 0, "neutral": 0}}, {"name": "Cesar Miranda Durán", "equipo": "2", "total": 280, "avanzado": 0, "pct": 0.0, "mix": {"good": 0, "warn": 0, "bad": 0, "neutral": 0}}, {"name": "Angelica Garcia Tellez", "equipo": "2", "total": 280, "avanzado": 0, "pct": 0.0, "mix": {"good": 0, "warn": 0, "bad": 0, "neutral": 0}}, {"name": "Emmanuel Rodea Herrera", "equipo": "6", "total": 279, "avanzado": 2, "pct": 0.7168458781362007, "mix": {"good": 0.0, "warn": 0.0, "bad": 100.0, "neutral": 0.0}}, {"name": "Daniela Fernanda Aldana Leal", "equipo": "1", "total": 280, "avanzado": 23, "pct": 8.214285714285714, "mix": {"good": 8.695652173913043, "warn": 86.95652173913044, "bad": 4.3478260869565215, "neutral": 0.0}}, {"name": "Samantha Sandoval Fernández", "equipo": "3", "total": 280, "avanzado": 0, "pct": 0.0, "mix": {"good": 0, "warn": 0, "bad": 0, "neutral": 0}}, {"name": "Karen Abeli Llamas Curiel", "equipo": "3", "total": 280, "avanzado": 2, "pct": 0.7142857142857143, "mix": {"good": 0.0, "warn": 50.0, "bad": 50.0, "neutral": 0.0}}, {"name": "Julio Alberto Hurtado Miranda", "equipo": "6", "total": 280, "avanzado": 0, "pct": 0.0, "mix": {"good": 0, "warn": 0, "bad": 0, "neutral": 0}}, {"name": "Johan Alexis Lopez Castro", "equipo": "5", "total": 279, "avanzado": 0, "pct": 0.0, "mix": {"good": 0, "warn": 0, "bad": 0, "neutral": 0}}, {"name": "Gersain Abraham Cruz Eleuterio", "equipo": "4", "total": 280, "avanzado": 0, "pct": 0.0, "mix": {"good": 0, "warn": 0, "bad": 0, "neutral": 0}}, {"name": "Ricardo Salinas", "equipo": "4", "total": 280, "avanzado": 0, "pct": 0.0, "mix": {"good": 0, "warn": 0, "bad": 0, "neutral": 0}}, {"name": "Carlos Francisco Yamanic", "equipo": "2", "total": 279, "avanzado": 0, "pct": 0.0, "mix": {"good": 0, "warn": 0, "bad": 0, "neutral": 0}}, {"name": "Julio Takeda Takeshi", "equipo": "5", "total": 280, "avanzado": 0, "pct": 0.0, "mix": {"good": 0, "warn": 0, "bad": 0, "neutral": 0}}, {"name": "Daniel Martinez", "equipo": "3", "total": 280, "avanzado": 11, "pct": 3.9285714285714284, "mix": {"good": 27.27272727272727, "warn": 63.63636363636363, "bad": 9.090909090909092, "neutral": 0.0}}, {"name": "Carlos Thomais", "equipo": "4", "total": 280, "avanzado": 0, "pct": 0.0, "mix": {"good": 0, "warn": 0, "bad": 0, "neutral": 0}}, {"name": "Yolanda Contreras", "equipo": "6", "total": 280, "avanzado": 0, "pct": 0.0, "mix": {"good": 0, "warn": 0, "bad": 0, "neutral": 0}}, {"name": "Ana Gabriela Serrano Zepeda", "equipo": "3", "total": 280, "avanzado": 3, "pct": 1.0714285714285714, "mix": {"good": 0.0, "warn": 66.66666666666666, "bad": 33.33333333333333, "neutral": 0.0}}, {"name": "Gabriel Emanuel Orozco Tapia", "equipo": "6", "total": 280, "avanzado": 0, "pct": 0.0, "mix": {"good": 0, "warn": 0, "bad": 0, "neutral": 0}}, {"name": "Jesus Eduardo Rivera", "equipo": "1", "total": 280, "avanzado": 10, "pct": 3.571428571428571, "mix": {"good": 10.0, "warn": 60.0, "bad": 30.0, "neutral": 0.0}}, {"name": "Aridna Magalli Medina Garces", "equipo": "2", "total": 280, "avanzado": 0, "pct": 0.0, "mix": {"good": 0, "warn": 0, "bad": 0, "neutral": 0}}], "n_total_asesores": 27, "label": "Base 29-sep", "date_iso": "2026-09-29"}, "30sep": {"total": 7554, "avanzado": 256, "pct": 3.388933015620863, "equipo_stats": {"1": {"avanzado": 5, "total": 945, "pct": 0.5291005291005291}, "2": {"avanzado": 53, "total": 948, "pct": 5.590717299578059}, "3": {"avanzado": 38, "total": 1260, "pct": 3.015873015873016}, "4": {"avanzado": 14, "total": 1573, "pct": 0.8900190718372537}, "5": {"avanzado": 79, "total": 1255, "pct": 6.294820717131475}, "6": {"avanzado": 67, "total": 1573, "pct": 4.259376986649714}}, "ventana_stats": {"8+ (Recovery)": {"avanzado": 182, "total": 2033, "pct": 8.95228726020659}, "mar-mié (1-2)": {"avanzado": 22, "total": 822, "pct": 2.67639902676399}, "(sin ventana / sin cruce)": {"avanzado": 52, "total": 4699, "pct": 1.1066184294530752}}, "segmento_stats": {"NUEVO": {"avanzado": 4, "total": 26, "pct": 15.384615384615385}, "A": {"avanzado": 4, "total": 398, "pct": 1.0050251256281406}, "B": {"avanzado": 10, "total": 204, "pct": 4.901960784313726}, "C": {"avanzado": 12, "total": 322, "pct": 3.7267080745341614}, "D": {"avanzado": 174, "total": 1905, "pct": 9.133858267716535}, "E SIN CRUCE": {"avanzado": 52, "total": 4699, "pct": 1.1066184294530752}}, "con_voluntad": 80, "con_promesa": 11, "status_list": [{"status": "En Seguimiento / Llamar después", "count": 55, "pct": 23.70689655172414, "class": "warn"}, {"status": "Driver al corriente", "count": 40, "pct": 17.24137931034483, "class": "good"}, {"status": "En proceso de Recuperación Forzosa", "count": 33, "pct": 14.224137931034484, "class": "warn"}, {"status": "Legal - Denuncias", "count": 20, "pct": 8.620689655172415, "class": "bad"}, {"status": "Sin actividad/ingresos", "count": 14, "pct": 6.0344827586206895, "class": "bad"}, {"status": "Ilocalizable", "count": 12, "pct": 5.172413793103448, "class": "bad"}, {"status": "Promesa de pago", "count": 11, "pct": 4.741379310344827, "class": "good"}, {"status": "Pago realizado en gestion", "count": 6, "pct": 2.586206896551724, "class": "good"}, {"status": "Legal - NUC", "count": 5, "pct": 2.1551724137931036, "class": "bad"}, {"status": "Se Gestiona Adendum", "count": 4, "pct": 1.7241379310344827, "class": "warn"}, {"status": "Seguros/Siniestro", "count": 4, "pct": 1.7241379310344827, "class": "bad"}, {"status": "Recuperado por Strategic Recovery", "count": 4, "pct": 1.7241379310344827, "class": "good"}], "mix_legend": {"good": 28.01724137931034, "warn": 43.103448275862064, "bad": 28.01724137931034, "neutral": 0.8620689655172413}, "status_total": 232, "asesores_list": [{"name": "Gabriel Emanuel Orozco Tapia", "equipo": "6", "total": 315, "avanzado": 7, "pct": 2.2222222222222223, "mix": {"good": 50.0, "warn": 0.0, "bad": 50.0, "neutral": 0.0}}, {"name": "Daniel Martinez", "equipo": "3", "total": 316, "avanzado": 0, "pct": 0.0, "mix": {"good": 0, "warn": 0, "bad": 0, "neutral": 0}}, {"name": "Cesar Miranda Durán", "equipo": "2", "total": 316, "avanzado": 18, "pct": 5.69620253164557, "mix": {"good": 0.0, "warn": 83.33333333333334, "bad": 11.11111111111111, "neutral": 5.555555555555555}}, {"name": "Aridna Magalli Medina Garces", "equipo": "2", "total": 316, "avanzado": 16, "pct": 5.063291139240507, "mix": {"good": 12.5, "warn": 87.5, "bad": 0.0, "neutral": 0.0}}, {"name": "Angelica Garcia Tellez", "equipo": "2", "total": 316, "avanzado": 19, "pct": 6.012658227848101, "mix": {"good": 0, "warn": 0, "bad": 0, "neutral": 0}}, {"name": "Karen Abeli Llamas Curiel", "equipo": "3", "total": 314, "avanzado": 12, "pct": 3.821656050955414, "mix": {"good": 25.0, "warn": 66.66666666666666, "bad": 8.333333333333332, "neutral": 0.0}}, {"name": "Ricardo Salinas", "equipo": "4", "total": 314, "avanzado": 0, "pct": 0.0, "mix": {"good": 0, "warn": 0, "bad": 0, "neutral": 0}}, {"name": "Emmanuel Rodea Herrera", "equipo": "6", "total": 314, "avanzado": 1, "pct": 0.3184713375796179, "mix": {"good": 0.0, "warn": 100.0, "bad": 0.0, "neutral": 0.0}}, {"name": "Anuar López Espinosa de los Monteros", "equipo": "6", "total": 316, "avanzado": 6, "pct": 1.89873417721519, "mix": {"good": 33.33333333333333, "warn": 33.33333333333333, "bad": 33.33333333333333, "neutral": 0.0}}, {"name": "Antonio Gonzalez", "equipo": "1", "total": 316, "avanzado": 5, "pct": 1.5822784810126582, "mix": {"good": 20.0, "warn": 60.0, "bad": 20.0, "neutral": 0.0}}, {"name": "Ana Gabriela Serrano Zepeda", "equipo": "3", "total": 316, "avanzado": 24, "pct": 7.59493670886076, "mix": {"good": 8.333333333333332, "warn": 79.16666666666666, "bad": 12.5, "neutral": 0.0}}, {"name": "Samantha Sandoval Fernández", "equipo": "3", "total": 314, "avanzado": 2, "pct": 0.6369426751592357, "mix": {"good": 100.0, "warn": 0.0, "bad": 0.0, "neutral": 0.0}}, {"name": "Gersain Abraham Cruz Eleuterio", "equipo": "4", "total": 315, "avanzado": 2, "pct": 0.6349206349206349, "mix": {"good": 100.0, "warn": 0.0, "bad": 0.0, "neutral": 0.0}}, {"name": "Irma Karina Marentes Rodriguez", "equipo": "5", "total": 314, "avanzado": 7, "pct": 2.229299363057325, "mix": {"good": 57.14285714285714, "warn": 42.857142857142854, "bad": 0.0, "neutral": 0.0}}, {"name": "Julio Alberto Hurtado Miranda", "equipo": "6", "total": 314, "avanzado": 42, "pct": 13.375796178343949, "mix": {"good": 85.71428571428571, "warn": 2.380952380952381, "bad": 9.523809523809524, "neutral": 2.380952380952381}}, {"name": "Jesus Eduardo Rivera", "equipo": "1", "total": 314, "avanzado": 0, "pct": 0.0, "mix": {"good": 0, "warn": 0, "bad": 0, "neutral": 0}}, {"name": "Sandra Montaño Palacios", "equipo": "5", "total": 314, "avanzado": 11, "pct": 3.5031847133757963, "mix": {"good": 18.181818181818183, "warn": 63.63636363636363, "bad": 18.181818181818183, "neutral": 0.0}}, {"name": "Daniela Fernanda Aldana Leal", "equipo": "1", "total": 315, "avanzado": 0, "pct": 0.0, "mix": {"good": 0, "warn": 0, "bad": 0, "neutral": 0}}, {"name": "Yolanda Contreras", "equipo": "6", "total": 314, "avanzado": 11, "pct": 3.5031847133757963, "mix": {"good": 0.0, "warn": 0.0, "bad": 100.0, "neutral": 0.0}}, {"name": "Carlos Thomain", "equipo": "4", "total": 315, "avanzado": 5, "pct": 1.5873015873015872, "mix": {"good": 40.0, "warn": 40.0, "bad": 20.0, "neutral": 0.0}}, {"name": "Aura Jimena Perez Ruiz", "equipo": "4", "total": 316, "avanzado": 2, "pct": 0.6329113924050633, "mix": {"good": 0.0, "warn": 100.0, "bad": 0.0, "neutral": 0.0}}, {"name": "Julio Takeda Takeshi", "equipo": "5", "total": 314, "avanzado": 47, "pct": 14.968152866242038, "mix": {"good": 8.695652173913043, "warn": 13.043478260869565, "bad": 78.26086956521739, "neutral": 0.0}}, {"name": "Johan Alexis Lopez Castro", "equipo": "5", "total": 313, "avanzado": 14, "pct": 4.472843450479233, "mix": {"good": 0.0, "warn": 100.0, "bad": 0.0, "neutral": 0.0}}, {"name": "Leilany Ibarra Gomez", "equipo": "4", "total": 313, "avanzado": 5, "pct": 1.5974440894568689, "mix": {"good": 40.0, "warn": 60.0, "bad": 0.0, "neutral": 0.0}}], "n_total_asesores": 24, "label": "Base 30-sep", "date_iso": "2026-09-30"}}, "corte": "2026-09-30"};
+
+function pct(n){ return (Math.round(n*10)/10).toFixed(1); }
+const STATUS_COLOR = { good: 'var(--good)', warn: 'var(--warn)', bad: 'var(--bad)', neutral: 'var(--neutral)' };
+
+function renderHero(){
+  const box = document.getElementById('heroBars');
+  box.innerHTML = DATA.baseOrder.map(key => {
+    const b = DATA.bases[key];
+    const active = b.pct < 99.5;
+    return `
+      <div class="bar-row" data-key="${key}" onclick="selectBase('${key}')">
+        <div class="bar-date">${DATA.baseShort[key]}</div>
+        <div class="bar-track">
+          <div class="bar-fill ${active ? 'active' : 'done'}" style="width:${b.pct}%"></div>
+          <span class="bar-n">${b.total.toLocaleString('es-MX')} casos</span>
+        </div>
+        <div class="bar-pct">${pct(b.pct)}%</div>
+      </div>`;
+  }).join('');
+}
+
+function markSelected(key){
+  document.querySelectorAll('.bar-row').forEach(el => el.classList.toggle('selected', el.dataset.key === key));
+}
+
+function renderDetail(key){
+  const b = DATA.bases[key];
+  document.getElementById('detailTitle').textContent = b.label;
+  document.getElementById('detailSub').textContent =
+    `${b.avanzado.toLocaleString('es-MX')} de ${b.total.toLocaleString('es-MX')} casos con decisión del equipo · creada ${DATA.baseDates[key]}`;
+
+  const equipoKeys = Object.keys(b.equipo_stats).sort((a,z) => Number(a) - Number(z));
+
+  const ventanaRows = Object.entries(b.ventana_stats);
+  const maxVentana = Math.max(...ventanaRows.map(([,v]) => v.total), 1);
+
+  const segmentoRows = Object.entries(b.segmento_stats);
+  const maxSegmento = Math.max(...segmentoRows.map(([,v]) => v.total), 1);
+
+  document.getElementById('detailGrid').innerHTML = `
+    <div class="card col-4">
+      <h3>Avance</h3>
+      <div class="stat-big">${pct(b.pct)}%</div>
+      <div class="stat-sub">${b.avanzado.toLocaleString('es-MX')} de ${b.total.toLocaleString('es-MX')} casos</div>
+    </div>
+
+    <div class="card col-4">
+      <h3>Por equipo</h3>
+      ${equipoKeys.map(eq => `
+        <div class="team-row">
+          <div class="team-name">Equipo ${eq}</div>
+          <div class="team-track"><div class="team-fill" style="width:${b.equipo_stats[eq].pct}%"></div></div>
+          <div class="team-pct">${pct(b.equipo_stats[eq].pct)}%</div>
+        </div>`).join('')}
+    </div>
+
+    <div class="card col-4">
+      <h3>Voluntad y promesa de pago</h3>
+      <div class="split-block">
+        <div class="split-item">
+          <div class="l">Con voluntad</div>
+          <div class="v">${b.con_voluntad.toLocaleString('es-MX')}</div>
+          <div class="n">de ${b.total.toLocaleString('es-MX')} casos</div>
+        </div>
+        <div class="split-item">
+          <div class="l">Con promesa</div>
+          <div class="v">${b.con_promesa.toLocaleString('es-MX')}</div>
+          <div class="n">de ${b.total.toLocaleString('es-MX')} casos</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card col-6">
+      <h3>Por ventana DPD (peor primero)</h3>
+      ${ventanaRows.map(([name, v]) => `
+        <div class="bd-row">
+          <div class="bd-name">${name}</div>
+          <div class="bd-track"><div class="bd-fill" style="width:${(v.total/maxVentana*100)}%"></div></div>
+          <div class="bd-pct">${pct(v.pct)}%</div>
+          <div class="bd-n">${v.avanzado}/${v.total}</div>
+        </div>`).join('')}
+    </div>
+
+    <div class="card col-6">
+      <h3>Por segmento</h3>
+      ${segmentoRows.map(([name, v]) => `
+        <div class="bd-row">
+          <div class="bd-name">${name}</div>
+          <div class="bd-track"><div class="bd-fill" style="width:${(v.total/maxSegmento*100)}%"></div></div>
+          <div class="bd-pct">${pct(v.pct)}%</div>
+          <div class="bd-n">${v.avanzado}/${v.total}</div>
+        </div>`).join('')}
+    </div>
+
+    <div class="card col-12">
+      <h3>Mix de status calificado</h3>
+      ${b.status_total ? `
+        <div class="mixbar">
+          ${['good','warn','bad','neutral'].map(cls => `<span style="width:${b.mix_legend[cls] || 0}%; background:${STATUS_COLOR[cls]}"></span>`).join('')}
+        </div>
+        <div class="mix-legend">
+          ${b.status_list.map(s => `<span><span class="dot" style="background:${STATUS_COLOR[s.class]}"></span>${s.status} — ${s.count} (${pct(s.pct)}%)</span>`).join('')}
+        </div>
+      ` : '<div class="empty-note">Todavía sin calificaciones en este corte.</div>'}
+    </div>
+
+    <div class="card col-12">
+      <h3>Por asesor</h3>
+      ${renderAsesorTable(b.asesores_list)}
+    </div>
+  `;
+}
+
+function renderAsesorTable(list){
+  if (!list.length) return '<div class="empty-note">Sin datos de asesores para este corte.</div>';
+  const ranked = list.slice().sort((a,z) => (z.pct - a.pct) || (z.avanzado - a.avanzado) || (z.total - a.total));
+
+  const mixBar = (mix) => {
+    const parts = ['good','warn','bad','neutral'].map(cls => `<span style="width:${mix[cls] || 0}%; background:${STATUS_COLOR[cls]}"></span>`).join('');
+    return `<div class="mini-mix" title="good ${pct(mix.good)}% · warn ${pct(mix.warn)}% · bad ${pct(mix.bad)}% · neutral ${pct(mix.neutral)}%">${parts}</div>`;
+  };
+
+  const rowsHtml = ranked.map((a,i) => `
+      <tr>
+        <td><span class="rank" style="${i===0 ? 'background:var(--accent);color:#fff' : ''}">${i+1}</span></td>
+        <td>${a.name}</td>
+        <td>Equipo ${a.equipo || '—'}</td>
+        <td class="num">${a.total}</td>
+        <td>${mixBar(a.mix)}</td>
+        <td class="num">${pct(a.pct)}%<span style="color:var(--ink-3); font-size:11px; margin-left:5px">(${a.avanzado}/${a.total})</span></td>
+      </tr>`).join('');
+
+  return `
+    <table>
+      <thead><tr><th></th><th>Asesor</th><th>Equipo</th><th class="num">Casos</th><th>Status de su cartera</th><th class="num">Avance</th></tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>
+    <div class="empty-note" style="margin-top:12px">Casos y Avance son solo de esta base (el corte seleccionado arriba), no acumulado histórico del asesor. "Status de su cartera" es el mix bueno/en proceso/crítico/sin clasificar de lo que ese asesor ya calificó.</div>`;
+}
+
+function selectBase(key){
+  markSelected(key);
+  renderDetail(key);
+  window.scrollTo({ top: document.getElementById('detailTitle').offsetTop - 90, behavior: 'smooth' });
+}
+
+document.getElementById('corteDate').textContent = DATA.corte;
+document.getElementById('footerNote').textContent =
+  `Fuente: Sheet de Cobranza, pestañas "Base NN-mmm" (solo las del esquema de segmentación nuevo, desde 29-sep-2026). "Avanzado" = caso con Status Calificado, Contacto o Comentarios ya capturado. Clasificación de etiquetas (bueno/en proceso/crítico) es un criterio propio, pendiente de confirmar con Ricardo. Se actualiza solo cada 2 horas.`;
+renderHero();
+const initial = DATA.baseOrder[DATA.baseOrder.length - 1];
+markSelected(initial);
+renderDetail(initial);
+</script>

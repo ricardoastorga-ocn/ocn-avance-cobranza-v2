@@ -12,6 +12,9 @@ from datetime import date
 
 SHEET_ID = '1DoontdrZJsk5VGJ44HPSghYow1kViiTBvaSmo4KWJHU'
 TAB_RE = re.compile(r'^Base (\d{2})-([a-z]{3})$')
+# Pestanas del esquema nuevo que se excluyen a proposito del reporte (pedido explicito de
+# Ricardo, 30-sep-2026 -- "Base 29-sep" ya no se muestra, aunque tecnicamente calificaria).
+EXCLUDE_TABS = {'Base 29-sep'}
 MESES = {'ene':1,'feb':2,'mar':3,'abr':4,'may':5,'jun':6,'jul':7,'ago':8,'sep':9,'oct':10,'nov':11,'dic':12}
 MESES_INV = {v: k for k, v in MESES.items()}
 REQUIRED_COLS = ['VIN', 'Segmento', 'Ventana DPD', 'Asesor Asignado', 'Status Calificado por Asesor', 'Equipo']
@@ -191,6 +194,8 @@ def main():
 
     candidatos = []
     for title in all_titles:
+        if title in EXCLUDE_TABS:
+            continue
         m = TAB_RE.match(title)
         if not m:
             continue

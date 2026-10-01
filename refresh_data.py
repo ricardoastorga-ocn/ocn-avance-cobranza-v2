@@ -9,6 +9,16 @@ porque Ricardo reordena columnas a mano seguido."""
 import os, re, json, urllib.request, urllib.parse, unicodedata
 from collections import Counter, defaultdict
 from datetime import date
+from zoneinfo import ZoneInfo
+
+MX_TZ = ZoneInfo('America/Mexico_City')
+
+def datetime_now_mx_date():
+    # NUNCA usar date.today() en GitHub Actions (corre en UTC) -- Mexico va 6h atras, asi que
+    # desde las 6pm CDMX date.today() ya muestra el dia siguiente. Ver mismo bug documentado en
+    # ocn-dashboard-growth (31-ago-2026).
+    import datetime as _dt
+    return _dt.datetime.now(MX_TZ).date().isoformat()
 
 SHEET_ID = '1DoontdrZJsk5VGJ44HPSghYow1kViiTBvaSmo4KWJHU'
 TAB_RE = re.compile(r'^Base (\d{2})-([a-z]{3})$')
@@ -238,7 +248,7 @@ def main():
         'baseDates': base_dates,
         'baseShort': base_short,
         'bases': bases,
-        'corte': date.today().isoformat(),
+        'corte': datetime_now_mx_date(),
     }
 
     with open('template.html', encoding='utf-8') as f:

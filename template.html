@@ -111,6 +111,18 @@ tr:last-child td{border-bottom:none;}
 
 .empty-note{font-size:13px; color:var(--ink-3); font-style:italic;}
 
+.heatmap-wrap{overflow-x:auto;}
+.heatmap{border-collapse:separate; border-spacing:4px; width:100%; min-width:760px;}
+.heatmap th{background:none; border:none; padding:0 6px 8px; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-3); font-weight:700; text-align:center;}
+.heatmap th.seg-head{text-align:left; padding-left:4px;}
+.heatmap td.seg-label{font-size:12.5px; font-weight:700; color:var(--ink-2); white-space:nowrap; padding:0 10px 0 4px; vertical-align:middle;}
+.heatmap td.cell{border-radius:10px; padding:9px 6px; text-align:center; vertical-align:middle; min-width:84px;}
+.heatmap td.cell.empty{background:var(--surface-3);}
+.heatmap .cell-pct{font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:15px; line-height:1.1;}
+.heatmap .cell-n{font-size:10.5px; color:var(--ink-2); margin-top:2px;}
+.heatmap-legend{display:flex; align-items:center; gap:8px; margin-top:14px; font-size:11.5px; color:var(--ink-2);}
+.heatmap-legend .ramp{width:120px; height:8px; border-radius:4px; background:linear-gradient(90deg, var(--bad), var(--warn), var(--good));}
+
 footer{margin-top:44px; padding-top:22px; border-top:1px solid var(--border); font-size:12px; color:var(--ink-3); line-height:1.6;}
 
 @media (max-width:760px){
@@ -232,6 +244,11 @@ function renderDetail(key){
       </div>
     </div>
 
+    <div class="card col-12">
+      <h3>Volumen y avance por Segmento × Ventana DPD</h3>
+      ${renderHeatmap(b)}
+    </div>
+
     <div class="card col-6">
       <h3>Por ventana DPD (peor primero)</h3>
       ${ventanaRows.map(([name, v]) => `
@@ -271,6 +288,79 @@ function renderDetail(key){
       ${renderAsesorTable(b.asesores_list)}
     </div>
   `;
+}
+
+const VENTANA_ORDEN = ['8+ (Recovery)', 'lunes (7)', 'sáb-dom (5-6)', 'jue-vie (3-4)',
+  'mar-mié (1-2)', 'lunes (0)', 'jue-dom (-4 a -1)', '(sin ventana / sin cruce)'];
+const VENTANA_CORTA = { '8+ (Recovery)': '8+', 'lunes (7)': 'Lun 7', 'sáb-dom (5-6)': 'Sáb-Dom 5-6',
+  'jue-vie (3-4)': 'Jue-Vie 3-4', 'mar-mié (1-2)': 'Mar-Mié 1-2', 'lunes (0)': 'Lun 0',
+  'jue-dom (-4 a -1)': 'Jue-Dom -4/-1', '(sin ventana / sin cruce)': 'Sin ventana' };
+const SEGMENTO_ORDEN = ['NUEVO', 'A', 'B', 'C', 'D', 'E SIN CRUCE'];
+const SEGMENTO_LABEL = { NUEVO: 'NUEVO (Onboard)', A: 'A (Protect)', B: 'B (Manage)',
+  C: 'C (Test)', D: 'D (Recover)', 'E SIN CRUCE': 'E (Sin cruce)' };
+
+// Interpola bad->warn->good segun % de avance -- mismo trio de color ya usado en el mix de
+// status de este reporte, solo que aqui como rampa continua en vez de 4 clases discretas.
+function heatColor(p){
+  const stops = [
+    [0,   [208, 64, 59]],   // --bad
+    [50,  [196, 122, 0]],   // --warn
+    [100, [12, 163, 74]],   // --good
+  ];
+  let a = stops[0], b = stops[stops.length-1];
+  for (let i=0; i<stops.length-1; i++){
+    if (p >= stops[i][0] && p <= stops[i+1][0]){ a = stops[i]; b = stops[i+1]; break; }
+  }
+  const span = b[0]-a[0] || 1;
+  const t = (p-a[0])/span;
+  const mix = (c1,c2) => Math.round(c1 + (c2-c1)*t);
+  const [r,g,bl] = [mix(a[1][0],b[1][0]), mix(a[1][1],b[1][1]), mix(a[1][2],b[1][2])];
+  return `rgba(${r},${g},${bl},0.16)`;
+}
+function heatTextColor(p){
+  const stops = [[0,[208,64,59]],[50,[196,122,0]],[100,[12,163,74]]];
+  let a = stops[0], b = stops[stops.length-1];
+  for (let i=0; i<stops.length-1; i++){
+    if (p >= stops[i][0] && p <= stops[i+1][0]){ a = stops[i]; b = stops[i+1]; break; }
+  }
+  const span = b[0]-a[0] || 1;
+  const t = (p-a[0])/span;
+  const mix = (c1,c2) => Math.round(c1 + (c2-c1)*t);
+  return `rgb(${mix(a[1][0],b[1][0])},${mix(a[1][1],b[1][1])},${mix(a[1][2],b[1][2])})`;
+}
+
+function renderHeatmap(b){
+  const heat = b.heatmap || {};
+  const segsConData = SEGMENTO_ORDEN.filter(s => heat[s]);
+  if (!segsConData.length) return '<div class="empty-note">Sin datos de Segmento × Ventana para este corte.</div>';
+  const ventanasConData = VENTANA_ORDEN.filter(v => segsConData.some(s => heat[s][v]));
+
+  const headHtml = ventanasConData.map(v => `<th>${VENTANA_CORTA[v] || v}</th>`).join('');
+  const rowsHtml = segsConData.map(s => {
+    const celdas = ventanasConData.map(v => {
+      const c = heat[s][v];
+      if (!c) return '<td class="cell empty">—</td>';
+      const bg = heatColor(c.pct);
+      const fg = heatTextColor(c.pct);
+      return `<td class="cell" style="background:${bg}">
+        <div class="cell-pct" style="color:${fg}">${pct(c.pct)}%</div>
+        <div class="cell-n">${c.avanzado}/${c.total}</div>
+      </td>`;
+    }).join('');
+    return `<tr><td class="seg-label">${SEGMENTO_LABEL[s] || s}</td>${celdas}</tr>`;
+  }).join('');
+
+  return `
+    <div class="heatmap-wrap">
+      <table class="heatmap">
+        <thead><tr><th class="seg-head">Segmento</th>${headHtml}</tr></thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    </div>
+    <div class="heatmap-legend">
+      <span>0% avance</span><span class="ramp"></span><span>100% avance</span>
+      <span style="margin-left:16px; color:var(--ink-3)">Cada celda: % avanzado (arriba) y avanzado/total (abajo). Ventanas ordenadas de peor a mejor.</span>
+    </div>`;
 }
 
 function renderAsesorTable(list){

@@ -152,6 +152,23 @@ def compute_base(rows):
         if stotal:
             segmento_stats[s] = {'avanzado': sav, 'total': stotal, 'pct': (sav / stotal * 100 if stotal else 0)}
 
+    # Heatmap Segmento x Ventana DPD -- mismo cruce de la "Treatment by segment x DPD" de la
+    # estrategia (Customer Care Structure.pdf, slide 7), pero mostrando volumen + % ya trabajado
+    # en vez del tratamiento sugerido (el tratamiento ya vive en la columna "Tratamiento sugerido"
+    # de cada caso, no se repite aqui). Pedido explicito de Ricardo 5-oct-2026.
+    heatmap = {}
+    for s in segmento_order:
+        fila = {}
+        for v in PRIORIDAD_VENTANA:
+            celda_rows = [r for r in rows if r['segmento'] == s and r['ventana'] == v]
+            ctotal = len(celda_rows)
+            if not ctotal:
+                continue
+            cav = sum(1 for r in celda_rows if is_avanzado(r))
+            fila[v] = {'total': ctotal, 'avanzado': cav, 'pct': (cav / ctotal * 100 if ctotal else 0)}
+        if fila:
+            heatmap[s] = fila
+
     con_voluntad = sum(1 for r in rows if norm_key(r['voluntad']) == norm_key('Sí'))
     con_promesa = sum(1 for r in rows if norm_key(r['status_calif']) == norm_key('Promesa de pago'))
 
@@ -191,6 +208,7 @@ def compute_base(rows):
     return {
         'total': total, 'avanzado': avanzado, 'pct': (avanzado / total * 100 if total else 0),
         'equipo_stats': equipo_stats, 'ventana_stats': ventana_stats, 'segmento_stats': segmento_stats,
+        'heatmap': heatmap,
         'con_voluntad': con_voluntad, 'con_promesa': con_promesa,
         'status_list': status_list[:12], 'mix_legend': mix_legend, 'status_total': status_total,
         'asesores_list': asesores_list, 'n_total_asesores': len(asesores_list),

@@ -118,6 +118,7 @@ def load_tab_rows(values):
             'status_calif': g(r, 'Status Calificado por Asesor'),
             'contacto': g(r, 'Contacto'), 'comentarios': g(r, 'Comentarios'),
             'voluntad': g(r, '¿Tiene Voluntad de Pago?'),
+            'activo_status': g(r, '2 Activo'),
         })
     return out
 
@@ -150,7 +151,13 @@ def compute_base(rows):
         stotal = len(srows)
         sav = sum(1 for r in srows if is_avanzado(r))
         if stotal:
-            segmento_stats[s] = {'avanzado': sav, 'total': stotal, 'pct': (sav / stotal * 100 if stotal else 0)}
+            sactivos = sum(1 for r in srows if norm_key(r['activo_status']) == norm_key('Activo'))
+            sinactivos = sum(1 for r in srows if norm_key(r['activo_status']) == norm_key('Inactivo'))
+            spromesas = sum(1 for r in srows if norm_key(r['status_calif']) == norm_key('Promesa de pago'))
+            segmento_stats[s] = {
+                'avanzado': sav, 'total': stotal, 'pct': (sav / stotal * 100 if stotal else 0),
+                'activos': sactivos, 'inactivos': sinactivos, 'promesas': spromesas,
+            }
 
     # Heatmap Segmento x Ventana DPD -- mismo cruce de la "Treatment by segment x DPD" de la
     # estrategia (Customer Care Structure.pdf, slide 7), pero mostrando volumen + % ya trabajado

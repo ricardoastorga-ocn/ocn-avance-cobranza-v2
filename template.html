@@ -89,12 +89,32 @@ h1,h2,h3{font-family:'Fraunces',Georgia,serif; text-wrap:balance; margin:0;}
 .bd-pct{width:44px; text-align:right; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-2);}
 .bd-n{width:56px; text-align:right; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-3);}
 
-.mixbar{display:flex; height:26px; border-radius:8px; overflow:hidden; margin-bottom:14px;}
+.mixbar{display:flex; height:26px; border-radius:8px; overflow:hidden; margin-bottom:14px; gap:2px;}
 .mixbar span{height:100%;}
 .mix-legend{display:flex; gap:14px 20px; flex-wrap:wrap; font-size:12px; color:var(--ink-2);}
 .mix-legend .dot{width:8px; height:8px; border-radius:2px; display:inline-block; margin-right:5px;}
-.mini-mix{display:flex; width:84px; height:10px; border-radius:4px; overflow:hidden; background:var(--surface-2);}
+.mini-mix{display:flex; width:84px; height:10px; border-radius:4px; overflow:hidden; background:var(--surface-2); gap:1px;}
 .mini-mix span{height:100%;}
+
+.seg-hero-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
+.seg-card{background:var(--surface-3); border-radius:16px; padding:18px 20px;}
+.seg-card .seg-name{font-size:13px; font-weight:700; color:var(--ink); margin-bottom:2px;}
+.seg-card .seg-n{font-size:11.5px; color:var(--ink-3); margin-bottom:12px;}
+.seg-card .seg-pct-row{display:flex; align-items:baseline; gap:8px; margin-bottom:8px;}
+.seg-card .seg-pct{font-family:'Fraunces',serif; font-size:32px; font-weight:600; line-height:1;}
+.seg-card .seg-pct-lbl{font-size:11px; color:var(--ink-3);}
+.seg-track{height:8px; background:var(--surface-2); border-radius:4px; overflow:hidden; margin-bottom:14px;}
+.seg-fill{height:100%; border-radius:4px;}
+.seg-sub{display:flex; justify-content:space-between; gap:10px; margin-bottom:9px;}
+.seg-sub-item{flex:1;}
+.seg-sub .l{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-3); margin-bottom:4px;}
+.seg-av-track{display:flex; width:100%; height:7px; border-radius:4px; overflow:hidden; background:var(--surface-2); gap:1px; margin-bottom:4px;}
+.seg-av-track span{height:100%;}
+.seg-av-n{font-size:11px; color:var(--ink-2); font-family:'IBM Plex Mono',monospace;}
+.seg-promesa{font-size:12px; color:var(--ink-2); padding-top:9px; border-top:1px solid var(--border-2);}
+.seg-promesa b{font-family:'IBM Plex Mono',monospace; color:var(--ink); font-weight:700;}
+@media (max-width:900px){.seg-hero-grid{grid-template-columns:1fr 1fr;}}
+@media (max-width:600px){.seg-hero-grid{grid-template-columns:1fr;}}
 
 table{width:100%; border-collapse:collapse; font-size:13px;}
 th{text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-3); font-weight:700; padding:0 8px 8px; border-bottom:1px solid var(--border);}
@@ -208,9 +228,6 @@ function renderDetail(key){
   const ventanaRows = Object.entries(b.ventana_stats);
   const maxVentana = Math.max(...ventanaRows.map(([,v]) => v.total), 1);
 
-  const segmentoRows = Object.entries(b.segmento_stats);
-  const maxSegmento = Math.max(...segmentoRows.map(([,v]) => v.total), 1);
-
   document.getElementById('detailGrid').innerHTML = `
     <div class="card col-4">
       <h3>Avance</h3>
@@ -245,11 +262,16 @@ function renderDetail(key){
     </div>
 
     <div class="card col-12">
+      <h3>Por segmento</h3>
+      ${renderSegmentoHero(b)}
+    </div>
+
+    <div class="card col-12">
       <h3>Volumen y avance por Segmento × Ventana DPD</h3>
       ${renderHeatmap(b)}
     </div>
 
-    <div class="card col-6">
+    <div class="card col-12">
       <h3>Por ventana DPD (peor primero)</h3>
       ${ventanaRows.map(([name, v]) => `
         <div class="bd-row">
@@ -260,27 +282,9 @@ function renderDetail(key){
         </div>`).join('')}
     </div>
 
-    <div class="card col-6">
-      <h3>Por segmento</h3>
-      ${segmentoRows.map(([name, v]) => `
-        <div class="bd-row">
-          <div class="bd-name">${name}</div>
-          <div class="bd-track"><div class="bd-fill" style="width:${(v.total/maxSegmento*100)}%"></div></div>
-          <div class="bd-pct">${pct(v.pct)}%</div>
-          <div class="bd-n">${v.avanzado}/${v.total}</div>
-        </div>`).join('')}
-    </div>
-
     <div class="card col-12">
       <h3>Mix de status calificado</h3>
-      ${b.status_total ? `
-        <div class="mixbar">
-          ${['good','warn','bad','neutral'].map(cls => `<span style="width:${b.mix_legend[cls] || 0}%; background:${STATUS_COLOR[cls]}"></span>`).join('')}
-        </div>
-        <div class="mix-legend">
-          ${b.status_list.map(s => `<span><span class="dot" style="background:${STATUS_COLOR[s.class]}"></span>${s.status} — ${s.count} (${pct(s.pct)}%)</span>`).join('')}
-        </div>
-      ` : '<div class="empty-note">Todavía sin calificaciones en este corte.</div>'}
+      ${renderMixStatus(b)}
     </div>
 
     <div class="card col-12">
@@ -360,6 +364,62 @@ function renderHeatmap(b){
     <div class="heatmap-legend">
       <span>0% avance</span><span class="ramp"></span><span>100% avance</span>
       <span style="margin-left:16px; color:var(--ink-3)">Cada celda: % avanzado (arriba) y avanzado/total (abajo). Ventanas ordenadas de peor a mejor.</span>
+    </div>`;
+}
+
+// Paleta categorica -- una familia de color realmente distinta por etiqueta, nunca tonos del
+// mismo color para categorias distintas (pedido explicito de Ricardo). Se usa para el Mix de
+// status calificado, donde conviven ~12 etiquetas lado a lado en una sola leyenda.
+const CATEGORICAL = [
+  '#2a6f97', '#c1440e', '#3a8f5b', '#a13d63', '#d4a017', '#6b4c8a',
+  '#4e8c8c', '#8c3b3b', '#5a7d2a', '#b85c9e', '#3d5a80', '#a67c52',
+];
+
+function renderMixStatus(b){
+  if (!b.status_total) return '<div class="empty-note">Todavía sin calificaciones en este corte.</div>';
+  const list = b.status_list;
+  return `
+    <div class="mixbar">
+      ${list.map((s,i) => `<span style="width:${s.pct}%; background:${CATEGORICAL[i % CATEGORICAL.length]}"></span>`).join('')}
+    </div>
+    <div class="mix-legend">
+      ${list.map((s,i) => `<span><span class="dot" style="background:${CATEGORICAL[i % CATEGORICAL.length]}"></span>${s.status} — ${s.count} (${pct(s.pct)}%)</span>`).join('')}
+    </div>`;
+}
+
+function renderSegmentoHero(b){
+  const rows = SEGMENTO_ORDEN.filter(s => b.segmento_stats[s]).map(s => [s, b.segmento_stats[s]]);
+  if (!rows.length) return '<div class="empty-note">Sin datos de segmento para este corte.</div>';
+  return `
+    <div class="seg-hero-grid">
+      ${rows.map(([name, v]) => {
+        const activosPct = v.total ? v.activos / v.total * 100 : 0;
+        const inactivosPct = v.total ? v.inactivos / v.total * 100 : 0;
+        const sinDatoPct = Math.max(0, 100 - activosPct - inactivosPct);
+        const fg = heatTextColor(v.pct);
+        return `
+        <div class="seg-card">
+          <div class="seg-name">${SEGMENTO_LABEL[name] || name}</div>
+          <div class="seg-n">${v.total.toLocaleString('es-MX')} casos</div>
+          <div class="seg-pct-row">
+            <div class="seg-pct" style="color:${fg}">${pct(v.pct)}%</div>
+            <div class="seg-pct-lbl">avance · ${v.avanzado}/${v.total}</div>
+          </div>
+          <div class="seg-track"><div class="seg-fill" style="width:${v.pct}%; background:${fg}"></div></div>
+          <div class="seg-sub">
+            <div class="seg-sub-item">
+              <div class="l">Activo / Inactivo</div>
+              <div class="seg-av-track" title="Activos ${v.activos} · Inactivos ${v.inactivos}">
+                <span style="width:${activosPct}%; background:var(--good)"></span>
+                <span style="width:${inactivosPct}%; background:var(--neutral)"></span>
+                ${sinDatoPct > 0 ? `<span style="width:${sinDatoPct}%; background:var(--surface-2)"></span>` : ''}
+              </div>
+              <div class="seg-av-n">${v.activos.toLocaleString('es-MX')} activos · ${v.inactivos.toLocaleString('es-MX')} inactivos</div>
+            </div>
+          </div>
+          <div class="seg-promesa">Promesas de pago: <b>${v.promesas.toLocaleString('es-MX')}</b></div>
+        </div>`;
+      }).join('')}
     </div>`;
 }
 
